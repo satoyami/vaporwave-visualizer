@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vaporwave Space</title>
+    <link rel="stylesheet" href="./src/hud.css">
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #12021f; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; }
+      #hint {
+        position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+        padding: 8px 14px; border-radius: 6px;
+        font: 13px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.05em;
+        color: #bff6ff; background: rgba(10, 0, 30, 0.45);
+        border: 1px solid rgba(80, 220, 255, 0.35);
+        text-shadow: 0 0 6px rgba(80, 220, 255, 0.8);
+        pointer-events: none; user-select: none; white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="hint">↑ ↓ move &nbsp;·&nbsp; ← → turn &nbsp;·&nbsp; Q / W gear &nbsp;·&nbsp; Shift boost</div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

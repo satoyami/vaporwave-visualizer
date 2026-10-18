@@ -1,0 +1,298 @@
+/* Non-diegetic HUD: a flat 2D panel on the screen glass, outside the 3D world. */
+.hud {
+  --hud-cyan: #7fe9ff;
+  --hud-text: #d6f9ff;
+  --hud-dim: rgba(160, 225, 255, 0.55);
+  --hud-pink: #ff5fd2;
+  --hud-line: rgba(110, 225, 255, 0.4);
+
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 240px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 12px 14px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--hud-line);
+  background: linear-gradient(160deg, rgba(30, 8, 64, 0.62), rgba(6, 18, 40, 0.62));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 18px rgba(90, 210, 255, 0.18),
+    inset 0 0 14px rgba(140, 80, 255, 0.15);
+  color: var(--hud-text);
+  font: 12px/1.3 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 6px rgba(110, 225, 255, 0.55);
+  pointer-events: none;
+  user-select: none;
+  display: grid;
+  gap: 12px;
+}
+
+.hud-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--hud-dim);
+}
+
+.hud-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hud-line), transparent);
+}
+
+/* Compass heading tape */
+.hud-tape {
+  position: relative;
+  height: 36px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  /* Fade the tape out at both ends. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+.hud-tape-strip {
+  position: absolute;
+  inset: 0 auto 0 0;
+  will-change: transform;
+}
+
+.hud-tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 6px;
+  background: var(--hud-dim);
+}
+.hud-tick.major {
+  height: 10px;
+  background: var(--hud-cyan);
+}
+
+.hud-tick-label {
+  position: absolute;
+  top: 9px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--hud-text);
+}
+.hud-tick-label.north {
+  color: var(--hud-pink);
+  text-shadow: 0 0 6px rgba(255, 95, 210, 0.8);
+}
+
+.hud-tape-marker {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 7px solid var(--hud-pink);
+  filter: drop-shadow(0 0 4px var(--hud-pink));
+}
+
+.hud-heading {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 15px;
+}
+.hud-heading .hud-cardinal {
+  display: inline-block;
+  min-width: 3ch;
+  margin-left: 6px;
+  color: var(--hud-cyan);
+}
+
+/* Readouts */
+.hud-value {
+  margin-top: 2px;
+  font-size: 22px;
+  color: #fff;
+}
+.hud-value small {
+  margin-left: 5px;
+  font-size: 11px;
+  color: var(--hud-dim);
+}
+
+.hud-tag {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  border: 1px solid currentColor;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.hud-tag + .hud-tag { margin-left: 0; }
+.hud-tag.on { opacity: 1; }
+.hud-tag.boost { color: var(--hud-pink); text-shadow: 0 0 6px var(--hud-pink); }
+.hud-tag.rev { color: #ffd36b; text-shadow: 0 0 6px rgba(255, 211, 107, 0.7); }
+
+/* Speed bar */
+.hud-bar {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(110, 225, 255, 0.12);
+  border: 1px solid rgba(110, 225, 255, 0.25);
+}
+.hud-bar-fill {
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #2fb8ff, var(--hud-cyan));
+  box-shadow: 0 0 8px var(--hud-cyan);
+}
+.hud.boosting .hud-bar-fill {
+  background: linear-gradient(90deg, #b05bff, var(--hud-pink));
+  box-shadow: 0 0 8px var(--hud-pink);
+}
+
+/* Gear selector: gears up to the current one light up, the current one glows pink. */
+.hud-gearbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.hud-gears {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+.hud-gear {
+  flex: 1;
+  padding: 2px 0;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--hud-dim);
+  border: 1px solid rgba(110, 225, 255, 0.2);
+  background: rgba(110, 225, 255, 0.05);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.hud-gear.lit {
+  color: var(--hud-text);
+  border-color: rgba(110, 225, 255, 0.5);
+  background: rgba(110, 225, 255, 0.16);
+}
+.hud-gear.current {
+  color: #fff;
+  border-color: var(--hud-pink);
+  background: rgba(255, 95, 210, 0.3);
+  box-shadow: 0 0 8px rgba(255, 95, 210, 0.6);
+  text-shadow: 0 0 6px var(--hud-pink);
+}
+
+/* Nearest-gate marker on the compass tape: small cyan wedge along the top edge. */
+.hud-tape-gate {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--hud-cyan);
+  filter: drop-shadow(0 0 4px var(--hud-cyan));
+}
+
+/* Nearest gate panel */
+.hud-nav-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.hud-nav-dial {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hud-line);
+  background: radial-gradient(circle, rgba(110, 225, 255, 0.12), rgba(0, 0, 0, 0.2) 70%);
+}
+.hud-nav-arrow {
+  fill: var(--hud-cyan);
+  filter: drop-shadow(0 0 4px var(--hud-cyan));
+  transition: fill 0.15s;
+}
+.hud-nav .hud-value { margin-top: 0; }
+.hud-nav-dir {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--hud-dim);
+}
+.hud-nav.on-target .hud-nav-arrow {
+  fill: var(--hud-pink);
+  filter: drop-shadow(0 0 5px var(--hud-pink));
+}
+.hud-nav.on-target .hud-nav-dir {
+  color: var(--hud-pink);
+  text-shadow: 0 0 6px var(--hud-pink);
+}
+
+/* Crosshair in the center of the viewport */
+.crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 62px; /* 30% larger than the original 48px */
+  height: 62px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  --crosshair: rgba(150, 235, 255, 0.85);
+  filter: drop-shadow(0 0 3px rgba(90, 210, 255, 0.9));
+  transition: filter 0.15s;
+}
+.crosshair svg { display: block; overflow: visible; }
+.crosshair .ring {
+  fill: none;
+  stroke: var(--crosshair);
+  stroke-width: 1;
+  stroke-dasharray: 10 8.8; /* broken ring: four arcs */
+  stroke-dashoffset: 5;
+  opacity: 0.5;
+}
+.crosshair .ticks {
+  fill: none;
+  stroke: var(--crosshair);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.crosshair .dot { fill: var(--crosshair); }
+.crosshair.on-target {
+  --crosshair: #ff8fe3;
+  filter: drop-shadow(0 0 4px rgba(255, 95, 210, 0.95));
+}
+.crosshair.on-target .ring { opacity: 0.9; }
+
+@media (max-width: 520px) {
+  .hud {
+    top: 12px;
+    right: 12px;
+    width: 200px;
+    padding: 10px 12px 12px;
+    gap: 10px;
+  }
+  .hud-value { font-size: 18px; }
+}
