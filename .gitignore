@@ -34,8 +34,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 .playwright-cli
 
-# sound files stay local (licensed); folders kept via .gitkeep
-# sounds-src/ holds the master .wav files, public/sounds/ the .ogg files the game loads
+# Master .wav files stay local (sounds-src/); the .ogg files in public/sounds/ are committed.
 sounds-src/
 public/sounds/**/*.wav
-public/sounds/**/*.ogg
