@@ -1,6 +1,6 @@
 /**
- * Every sound the scene uses. To add one: drop the .wav into public/sounds/
- * (sfx/ or ambience/), add an entry here, then trigger it from world-audio.ts.
+ * Every sound the scene uses. To add one: drop the .wav into sounds-src/
+ * (sfx/ or ambience/), run `bun run sounds` to make the .ogg, add an entry here, then trigger it from world-audio.ts.
  * Use the sound lab (backtick key) to audition files and tune these values.
  */
 
@@ -20,7 +20,7 @@ export interface SpatialDef {
 }
 
 export interface SoundDef {
-  /** Path served by index.ts, e.g. "/sounds/sfx/gate-pass.wav". */
+  /** Path served by index.ts, e.g. "/sounds/sfx/gate-pass.ogg". */
   url: string;
   bus: Bus;
   /** Linear gain, default 1. */
@@ -34,9 +34,9 @@ export interface SoundDef {
 
 export const SOUNDS = {
   // Ambience
-  spaceBed: { url: "/sounds/ambience/Deep Ambience.wav", bus: "ambience", volume: 0.6, loop: true },
+  spaceBed: { url: "/sounds/ambience/Deep Ambience.ogg", bus: "ambience", volume: 0.6, loop: true },
   gateHum: {
-    url: "/sounds/ambience/Bluezone_BC0253_ambience_texture_synth_02.wav",
+    url: "/sounds/ambience/Bluezone_BC0253_ambience_texture_synth_02.ogg",
     bus: "ambience",
     volume: 0.8,
     loop: true,
@@ -45,19 +45,19 @@ export const SOUNDS = {
 
   // In-world effects
   gatePulse: {
-    url: "/sounds/sfx/Hollow Tone Riser.wav",
+    url: "/sounds/sfx/Hollow Tone Riser.ogg",
     bus: "sfx",
     volume: 0.5,
     pitchJitter: 0.03,
     spatial: { refDistance: 120, maxDistance: 2500, rolloff: 0.8 },
   },
-  gatePass: { url: "/sounds/sfx/Bluezone_BC0253_texture_synth_12.wav", bus: "sfx", volume: 0.9 },
+  gatePass: { url: "/sounds/sfx/Bluezone_BC0253_texture_synth_12.ogg", bus: "sfx", volume: 0.9 },
 
   // Ship / interface
-  gearUp: { url: "/sounds/sfx/Bluezone-ISE-soundFX-083.wav", bus: "ui", volume: 0.7, pitchJitter: 0.02 },
-  gearDown: { url: "/sounds/sfx/Bluezone-ISE-soundFX-135.wav", bus: "ui", volume: 0.7, pitchJitter: 0.02 },
-  boostOn: { url: "/sounds/sfx/Bluezone-ISE-soundFX-101.wav", bus: "ui", volume: 0.8 },
-  boostOff: { url: "/sounds/sfx/Bluezone-ISE-soundFX-139.wav", bus: "ui", volume: 0.6 },
+  gearUp: { url: "/sounds/sfx/Bluezone-ISE-soundFX-083.ogg", bus: "ui", volume: 0.7, pitchJitter: 0.02 },
+  gearDown: { url: "/sounds/sfx/Bluezone-ISE-soundFX-135.ogg", bus: "ui", volume: 0.7, pitchJitter: 0.02 },
+  boostOn: { url: "/sounds/sfx/Bluezone-ISE-soundFX-101.ogg", bus: "ui", volume: 0.8 },
+  boostOff: { url: "/sounds/sfx/Bluezone-ISE-soundFX-139.ogg", bus: "ui", volume: 0.6 },
 } satisfies Record<string, SoundDef>;
 
 export type SoundId = keyof typeof SOUNDS;

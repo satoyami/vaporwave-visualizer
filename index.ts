@@ -15,10 +15,10 @@ async function serveSound(req: Request) {
   return new Response(blob);
 }
 
-/** Every .wav under public/sounds, for the sound lab (dev only). */
+/** Every audio file under public/sounds, for the sound lab (dev only). */
 async function listSounds() {
   const urls: string[] = [];
-  for await (const rel of new Bun.Glob("**/*.wav").scan({ cwd: SOUNDS_DIR })) {
+  for await (const rel of new Bun.Glob("**/*.{ogg,wav,mp3}").scan({ cwd: SOUNDS_DIR })) {
     urls.push(`/sounds/${rel.split(path.sep).join("/")}`);
   }
   return Response.json(urls.sort());

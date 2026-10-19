@@ -18,7 +18,7 @@ interface Entry {
 const camelCase = (url: string) =>
   url
     .replace(/^.*\//, "")
-    .replace(/\.wav$/i, "")
+    .replace(/\.(ogg|wav|mp3)$/i, "")
     .replace(/[^a-z0-9]+(.)/gi, (_, c: string) => c.toUpperCase())
     .replace(/^./, (c) => c.toLowerCase());
 
@@ -189,7 +189,7 @@ export function createDevPanel(opts: {
     );
   }
 
-  /** Pull .wav files from the server that aren't in the manifest yet (dev server only). */
+  /** Pull audio files from the server that aren't in the manifest yet (dev server only). */
   async function loadUnregistered() {
     try {
       const res = await fetch("/api/sounds");

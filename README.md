@@ -22,6 +22,7 @@ bun run dev      # dev server with hot reload at http://localhost:3000
 bun run start    # same server without hot reload (PORT=8080 to change the port)
 bun run build    # static build into ./dist, servable by any static host
 bun check        # type check
+bun run sounds   # convert sounds-src/*.wav → public/sounds/*.ogg
 ```
 
 ## Layout
@@ -40,7 +41,9 @@ bun check        # type check
 
 Audio starts after the first key press or click (browser rule).
 
-- `public/sounds/sfx/`, `public/sounds/ambience/` – the `.wav` files, served at `/sounds/...`
+- `sounds-src/{sfx,ambience}/` – master `.wav` files (not served)
+- `public/sounds/{sfx,ambience}/` – `.ogg` files (Opus, 160 kbps, 48 kHz) the game loads from `/sounds/...`
+- `scripts/convert-sounds.ts` – `bun run sounds` converts new or changed masters with ffmpeg (`--force` redoes all)
 - `src/audio/sounds.ts` – manifest: every sound's file, mixer bus, volume, loop and 3D settings
 - `src/audio/engine.ts` – the engine. three.js `AudioListener` rides on the camera and
   `PositionalAudio` handles loops attached to scene objects; plain Web Audio handles mixer
@@ -51,7 +54,8 @@ Audio starts after the first key press or click (browser rule).
 
 ### Adding a sound
 
-1. Drop the `.wav` into `public/sounds/sfx/` or `public/sounds/ambience/`.
+1. Drop the `.wav` into `sounds-src/sfx/` or `sounds-src/ambience/` and run `bun run sounds`
+   (needs ffmpeg with libopus: `brew install ffmpeg`).
 2. Add an entry to `SOUNDS` in `src/audio/sounds.ts` (add `spatial` to make it a 3D sound).
 3. Trigger it from `src/audio/world-audio.ts`:
    - `engine.play("id")` – one-shot (pass `{ position }` to place it in the world)
@@ -62,7 +66,7 @@ Missing files only log a warning, so you can add entries before the audio exists
 
 ### Sound lab
 
-Press backtick to open it. It lists every manifest sound plus any `.wav` in `public/sounds`
+Press backtick to open it. It lists every manifest sound plus any audio file in `public/sounds`
 that isn't in the manifest yet (marked `*`). You can play or loop each one, mix the buses and
 switch the ambience. **Place 40u ahead** drops a test emitter playing the selected sound:
 fly around it to hear panning and distance, tune volume, distance and cone with the sliders,

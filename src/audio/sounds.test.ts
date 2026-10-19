@@ -3,10 +3,10 @@ import { AMBIENCES, BUSES, DEFAULT_AMBIENCE, SOUNDS, soundDef, type SoundDef } f
 
 const defs = Object.entries(SOUNDS) as [string, SoundDef][];
 
-test("every sound has a unique .wav url under /sounds/", () => {
+test("every sound has a unique .ogg url under /sounds/", () => {
   const urls = defs.map(([, d]) => d.url);
   expect(new Set(urls).size).toBe(urls.length);
-  for (const url of urls) expect(url).toMatch(/^\/sounds\/.+\.wav$/);
+  for (const url of urls) expect(url).toMatch(/^\/sounds\/.+\.ogg$/);
 });
 
 test("buses and volumes are valid", () => {
@@ -30,5 +30,16 @@ test("ambience beds are looping, non-positional sounds", () => {
   for (const id of AMBIENCES) {
     expect(soundDef(id).loop).toBe(true);
     expect(soundDef(id).spatial).toBeUndefined();
+  }
+});
+
+// Sound files are gitignored, so only check them when they're present locally.
+const SOUNDS_DIR = new URL("../../public/sounds/", import.meta.url).pathname;
+const haveFiles = [...new Bun.Glob("**/*.ogg").scanSync({ cwd: SOUNDS_DIR })].length > 0;
+
+test.skipIf(!haveFiles)("every manifest url points at an existing file", async () => {
+  for (const [, d] of defs) {
+    const file = Bun.file(SOUNDS_DIR + d.url.slice("/sounds/".length));
+    expect(await file.exists(), d.url).toBe(true);
   }
 });
