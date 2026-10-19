@@ -67,15 +67,12 @@ const easeInOut = (t: number) => t * t * (3 - 2 * t);
  * It's positioned relative to the camera every frame, so it reads the same at any speed.
  */
 export function createPopups(scene: THREE.Scene, camera: THREE.Camera) {
-  const textures = new Map<string, ReturnType<typeof neonTexture>>();
-  const active: { sprite: THREE.Sprite; material: THREE.SpriteMaterial; age: number }[] = [];
+  type Popup = { sprite: THREE.Sprite; material: THREE.SpriteMaterial; texture: THREE.Texture; age: number };
+  const active: Popup[] = [];
 
+  // Each popup gets its own texture (the text usually changes, e.g. a running total).
   function spawn(text: string) {
-    let tex = textures.get(text);
-    if (!tex) {
-      tex = neonTexture(text);
-      textures.set(text, tex);
-    }
+    const tex = neonTexture(text);
     const material = new THREE.SpriteMaterial({
       map: tex.texture,
       transparent: true,
@@ -88,7 +85,7 @@ export function createPopups(scene: THREE.Scene, camera: THREE.Camera) {
     sprite.scale.set(HEIGHT * tex.aspect, HEIGHT, 1);
     sprite.renderOrder = 10;
     scene.add(sprite);
-    active.push({ sprite, material, age: 0 });
+    active.push({ sprite, material, texture: tex.texture, age: 0 });
   }
 
   const forward = new THREE.Vector3();
@@ -104,8 +101,7 @@ export function createPopups(scene: THREE.Scene, camera: THREE.Camera) {
       popup.age += dt;
       const t = Math.min(popup.age / DURATION, 1);
       if (t >= 1) {
-        popup.sprite.removeFromParent();
-        popup.material.dispose();
+        remove(popup);
         active.splice(i, 1);
         continue;
       }
@@ -121,14 +117,15 @@ export function createPopups(scene: THREE.Scene, camera: THREE.Camera) {
     }
   }
 
+  function remove(popup: Popup) {
+    popup.sprite.removeFromParent();
+    popup.material.dispose();
+    popup.texture.dispose();
+  }
+
   function dispose() {
-    for (const popup of active) {
-      popup.sprite.removeFromParent();
-      popup.material.dispose();
-    }
+    for (const popup of active) remove(popup);
     active.length = 0;
-    for (const { texture } of textures.values()) texture.dispose();
-    textures.clear();
   }
 
   return { spawn, update, dispose };

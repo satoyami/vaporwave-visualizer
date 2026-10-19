@@ -1,6 +1,6 @@
 # vaporwave-visualizer
 
-A three.js scene based on `image-refs/vaporwave-space.png`: a striped pink-to-violet
+Pass through as many neon gates as you can in 3 minutes. A three.js scene based on `image-refs/vaporwave-space.png`: a striped pink-to-violet
 sky with stars and a glowing horizon over an endless neon grid you can cruise around.
 
 ## Controls
@@ -12,6 +12,7 @@ sky with stars and a glowing horizon over an endless neon grid you can cruise ar
 | Q / W | Shift gear down / up (1–5) |
 | Shift | Boost (2.5× the current gear) |
 | M | Mute / unmute |
+| Enter / R | Play again after time is up |
 | ` (backtick) | Sound lab (dev panel); or open the page with `?dev` |
 
 ## Run
@@ -33,8 +34,9 @@ bun run sounds   # convert sounds-src/*.wav → public/sounds/*.ogg
 - `src/movement.ts` – arrow-key movement (also reports speed, heading, distance)
 - `src/hud.ts`, `src/hud.css` – top-right HUD (gate score, heading tape, speedometer, gears, odometer, nearest gate) and center crosshair
 - `src/audio/` – sound (see below)
+- `src/round.ts`, `src/clock.ts`, `src/clock.css` – 3-minute round: starts on your first arrow key, counts down at the top of the screen, stops scoring at 0:00 (`?time=<seconds>` for a shorter test round)
 - `src/score.ts` – gate score: +1 the first time you fly through each gate (resets on reload)
-- `src/popups.ts` – neon text popups in the scene ("GATES +1") that drift toward the camera and fade
+- `src/popups.ts` – neon text popups in the scene (the new gate total, e.g. "GATES 3") that drift toward the camera and fade
 - `src/gates.ts` – neon triangle gates, one every 4000 units (`GATE_SPACING`), each with a sky beam pulsing every 1.5 s (`PULSE_PERIOD`)
 
 ## Sound

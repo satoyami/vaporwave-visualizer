@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-/** Where the nearest gate is, relative to the viewer. */
+/** Where the nearest unscored gate is, relative to the viewer. */
 export interface GateNav {
   /** Ground distance to the gate, in units. */
   distance: number;
@@ -254,11 +254,39 @@ function hash(i: number, j: number, salt: number) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
+/** Ground position (x, z) of the gate in lattice cell (i, j). */
+function gateXZ(i: number, j: number): [number, number] {
+  if (i === 0 && j === 0) return [FIRST_GATE.x, FIRST_GATE.z];
+  return [i * GATE_SPACING + (hash(i, j, 1) * 2 - 1) * JITTER, j * GATE_SPACING + (hash(i, j, 2) * 2 - 1) * JITTER];
+}
+
 function gatePlacement(i: number, j: number) {
-  if (i === 0 && j === 0) return { position: FIRST_GATE.clone(), yaw: 0 };
-  const x = i * GATE_SPACING + (hash(i, j, 1) * 2 - 1) * JITTER;
-  const z = j * GATE_SPACING + (hash(i, j, 2) * 2 - 1) * JITTER;
-  return { position: new THREE.Vector3(x, 0, z), yaw: hash(i, j, 3) * Math.PI * 2 };
+  const [x, z] = gateXZ(i, j);
+  const yaw = i === 0 && j === 0 ? 0 : hash(i, j, 3) * Math.PI * 2;
+  return { position: new THREE.Vector3(x, 0, z), yaw };
+}
+
+/** Cells searched around the viewer for an unscored gate: (2 * radius + 1)² gates. */
+const NAV_SEARCH_RADIUS = 3;
+
+/**
+ * Closest gate to ground point (x, z) that `isPassed` doesn't exclude, searching
+ * the lattice cells around it. Gates are identified by cell id ("i,j").
+ */
+export function nearestOpenGate(x: number, z: number, isPassed: (cell: string) => boolean) {
+  const ci = Math.round(x / GATE_SPACING);
+  const cj = Math.round(z / GATE_SPACING);
+  let best: { cell: string; x: number; z: number; distance: number } | null = null;
+  for (let i = ci - NAV_SEARCH_RADIUS; i <= ci + NAV_SEARCH_RADIUS; i++) {
+    for (let j = cj - NAV_SEARCH_RADIUS; j <= cj + NAV_SEARCH_RADIUS; j++) {
+      const cell = `${i},${j}`;
+      if (isPassed(cell)) continue;
+      const [gx, gz] = gateXZ(i, j);
+      const distance = Math.hypot(gx - x, gz - z);
+      if (!best || distance < best.distance) best = { cell, x: gx, z: gz, distance };
+    }
+  }
+  return best;
 }
 
 /**
@@ -363,7 +391,10 @@ export function createGates() {
   /** Cell id of the gate flown through during the last update(), or null. */
   let crossed: string | null = null;
 
-  function update(camera: THREE.Vector3, time: number) {
+  /**
+   * `isPassed` says which gates are already scored; the HUD nav skips them.
+   */
+  function update(camera: THREE.Vector3, time: number, isPassed: (cell: string) => boolean = () => false) {
     beamTime.value = time;
     const ci = Math.round(camera.x / GATE_SPACING);
     const cj = Math.round(camera.z / GATE_SPACING);
@@ -409,13 +440,17 @@ export function createGates() {
       }
     }
 
-    if (nearest) {
-      const dx = nearest.object.position.x - camera.x;
-      const dz = nearest.object.position.z - camera.z;
-      nav.distance = Math.hypot(dx, dz);
+    // HUD nav: the closest gate not scored yet.
+    const target = nearestOpenGate(camera.x, camera.z, isPassed);
+    if (target) {
+      const dx = target.x - camera.x;
+      const dz = target.z - camera.z;
+      nav.distance = target.distance;
       // North is -Z and east is +X, matching the HUD compass.
       nav.bearing = ((Math.atan2(dx, -dz) * 180) / Math.PI + 360) % 360;
+    }
 
+    if (nearest) {
       nearest.object.updateMatrixWorld();
       // Sit the light on the viewer's side of the gate so the front face catches it.
       const side = Math.sign(nearest.object.worldToLocal(local.copy(camera)).z) || 1;
@@ -435,7 +470,7 @@ export function createGates() {
     glowTexture.dispose();
   }
 
-  /** Nearest gate as of the last update(). */
+  /** Nearest unscored gate as of the last update(). */
   const nearestGate = (): GateNav => nav;
 
   /** True if the viewer flew through a gate during the last update(). */

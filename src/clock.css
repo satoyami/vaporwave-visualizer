@@ -1,0 +1,113 @@
+/* Round clock (top center) and the time-up message. Same palette as the HUD, with a yellow glow. */
+.clock,
+.time-up {
+  --clock-cyan: #7fe9ff;
+  --clock-pink: #ff5fd2;
+  --clock-yellow: #ffd36b;
+  --clock-line: rgba(110, 225, 255, 0.4);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+}
+
+.clock {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 132px;
+  box-sizing: border-box;
+  padding: 6px 18px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--clock-line);
+  /* A thin yellow line along the bottom edge. */
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 211, 107, 0.7), transparent) bottom / 100% 1px no-repeat,
+    linear-gradient(160deg, rgba(30, 8, 64, 0.62), rgba(6, 18, 40, 0.62));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 18px rgba(90, 210, 255, 0.18),
+    0 0 14px rgba(255, 211, 107, 0.16),
+    inset 0 0 14px rgba(140, 80, 255, 0.15);
+  text-align: center;
+}
+
+.clock-time {
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  color: #fff7dd;
+  text-shadow:
+    0 0 6px rgba(255, 211, 107, 0.95),
+    0 0 16px rgba(255, 211, 107, 0.55),
+    0 0 28px rgba(255, 95, 210, 0.35);
+}
+
+.clock-sub {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(160, 225, 255, 0.7);
+  text-shadow: 0 0 6px rgba(110, 225, 255, 0.55);
+}
+.clock-sub:empty { display: none; }
+
+.clock[data-phase="ready"] .clock-time { opacity: 0.8; }
+.clock[data-phase="over"] .clock-sub { color: var(--clock-pink); text-shadow: 0 0 6px var(--clock-pink); }
+
+/* Last 10 seconds: the glow pulses once a second. */
+.clock.urgent .clock-time { animation: clock-pulse 1s ease-in-out infinite; }
+@keyframes clock-pulse {
+  0%, 100% { color: #fff7dd; }
+  50% {
+    color: var(--clock-yellow);
+    text-shadow: 0 0 10px var(--clock-yellow), 0 0 26px var(--clock-yellow), 0 0 36px var(--clock-pink);
+  }
+}
+
+/* Time-up message, above the crosshair. */
+.time-up {
+  position: fixed;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  white-space: nowrap;
+}
+.time-up[hidden] { display: none; }
+
+.time-up-title {
+  font: italic 900 64px/1 "Avenir Next", "Trebuchet MS", "Arial Black", sans-serif;
+  color: #c9f6ff;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
+  text-shadow:
+    0 0 8px var(--clock-pink),
+    0 0 22px var(--clock-pink),
+    0 0 44px rgba(255, 63, 208, 0.6);
+  animation: time-up-in 0.5s ease-out;
+}
+.time-up-score {
+  margin-top: 10px;
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  color: #fff7dd;
+  text-shadow: 0 0 6px var(--clock-yellow), 0 0 16px rgba(255, 211, 107, 0.6);
+}
+.time-up-score span { font-size: 30px; }
+.time-up-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--clock-cyan);
+  text-shadow: 0 0 6px rgba(110, 225, 255, 0.7);
+}
+@keyframes time-up-in {
+  from { opacity: 0; transform: scale(1.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 520px) {
+  .clock { top: auto; bottom: 64px; }
+  .time-up-title { font-size: 44px; }
+}

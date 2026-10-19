@@ -12,7 +12,7 @@ const TAPE_LABELS: Record<number, string> = { 0: "N", 45: "NE", 90: "E", 135: "S
 const MARKUP = `
   <section class="hud-score" data-hud="scoreBox">
     <span class="hud-label">GATES</span>
-    <span class="hud-score-value"><span class="hud-star">★</span><span data-hud="score">0</span></span>
+    <span class="hud-score-value" data-hud="score">0</span>
   </section>
   <div class="hud-divider"></div>
   <section>

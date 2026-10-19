@@ -5,6 +5,8 @@ import { createHud } from "./hud.ts";
 import { createGates } from "./gates.ts";
 import { createScore } from "./score.ts";
 import { createPopups } from "./popups.ts";
+import { createRound, ROUND_SECONDS } from "./round.ts";
+import { createClock } from "./clock.ts";
 import { createAudioEngine } from "./audio/engine.ts";
 import { createWorldAudio } from "./audio/world-audio.ts";
 import { createDevPanel } from "./audio/dev-panel.ts";
@@ -39,6 +41,20 @@ const movement = createMovement(camera, EYE_HEIGHT);
 const hud = createHud();
 const score = createScore();
 const popups = createPopups(scene, camera);
+
+// Timed round: pass as many gates as you can before the clock runs out.
+// ?time=<seconds> shortens it for testing.
+const round = createRound(Number(new URLSearchParams(location.search).get("time")) || ROUND_SECONDS);
+const clock = createClock();
+const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+const onRoundKey = (e: KeyboardEvent) => {
+  if (ARROWS.has(e.code)) round.start(); // the clock starts on the first move
+  if (round.phase() === "over" && (e.code === "Enter" || e.code === "KeyR") && !e.repeat) {
+    score.reset();
+    round.reset();
+  }
+};
+window.addEventListener("keydown", onRoundKey);
 
 // Sound: the listener rides on the camera; gates get positional hums.
 const audio = createAudioEngine(camera);
@@ -93,19 +109,22 @@ renderer.setAnimationLoop((time) => {
   // so the floor looks endless and the lines still scroll past as you move.
   ground.mesh.position.set(camera.position.x, 0, camera.position.z);
   ground.material.uniforms.uCamPos!.value.copy(camera.position);
-  gates.update(camera.position, elapsed);
+  gates.update(camera.position, elapsed, score.has);
 
+  round.update(dt);
   const passed = gates.crossedGate();
-  if (passed && score.pass(passed)) popups.spawn("GATES +1");
+  // The popup shows the new total, matching the HUD.
+  if (passed && round.phase() === "running" && score.pass(passed)) popups.spawn(`GATES ${score.value()}`);
   popups.update(dt);
 
   renderer.render(scene, camera);
   hud.update(movement.state(), gates.nearestGate(), score.value());
+  clock.update(round, score.value());
   worldAudio.update(movement.state(), elapsed, camera.position);
 });
 
 // Exposed for automated browser tests.
-(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene, audio, score };
+(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene, audio, score, round };
 
 // Bun requires the literal `import.meta.hot.<api>` form (no `?.`).
 if (import.meta.hot) {
@@ -117,6 +136,8 @@ if (import.meta.hot) {
     hud.dispose();
     timer.dispose();
     window.removeEventListener("keydown", onAudioKey);
+    window.removeEventListener("keydown", onRoundKey);
+    clock.dispose();
     devPanel?.dispose();
     worldAudio.dispose();
     audio.dispose();

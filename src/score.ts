@@ -13,7 +13,13 @@ export function createScore() {
     return true;
   }
 
-  return { pass, value: () => passed.size };
+  /** True if this gate has already scored. */
+  const has = (gateId: string) => passed.has(gateId);
+
+  /** Back to 0 for a new round; every gate can score again. */
+  const reset = () => passed.clear();
+
+  return { pass, has, reset, value: () => passed.size };
 }
 
 export type Score = ReturnType<typeof createScore>;
