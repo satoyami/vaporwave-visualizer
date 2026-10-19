@@ -300,7 +300,7 @@ export function createGates() {
 
   // Shared geometry
   const frameGeo = frameGeometry(WIDTH, HEIGHT, BAR, DEPTH);
-  // Thin secondary rails behind the main frame, like the outer struts in the reference.
+  // Thin secondary rails behind the main frame, like outer struts.
   const railGeo = frameGeometry(WIDTH * 1.14, HEIGHT * 1.07, 0.7, 0.7);
   const tubePath = roundedTrianglePath(insetTriangle(WIDTH, HEIGHT, BAR), 2.2);
   const tubeGeo = new THREE.TubeGeometry(tubePath, 360, TUBE_RADIUS, 10, true);

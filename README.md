@@ -1,7 +1,7 @@
 # vaporwave-visualizer
 
-Pass through as many neon gates as you can in 3 minutes. A three.js scene based on `image-refs/vaporwave-space.png`: a striped pink-to-violet
-sky with stars and a glowing horizon over an endless neon grid you can cruise around.
+Pass through as many neon gates as you can in 3 minutes. A three.js scene with a striped pink-to-violet
+sky, stars and a glowing horizon over an endless neon grid you can cruise around.
 
 [![Demo: a timed run through the neon gates](docs/demo.gif)](docs/demo.mp4)
 
@@ -18,6 +18,28 @@ sky with stars and a glowing horizon over an endless neon grid you can cruise ar
 | M | Mute / unmute |
 | Enter / R | Play again after time is up |
 | ` (backtick) | Sound lab (dev panel); or open the page with `?dev` |
+
+## Prerequisites
+
+- **[Bun](https://bun.sh) 1.4 or newer** – runs the server, bundles the frontend, runs the tests
+  and type checks the project (`bun check`). Install it with one of:
+
+  ```bash
+  curl -fsSL https://bun.sh/install | bash               # macOS, Linux, WSL
+  brew install oven-sh/bun/bun                           # macOS with Homebrew
+  powershell -c "irm bun.sh/install.ps1 | iex"           # Windows
+  ```
+
+  Then open a new terminal and check it with `bun --version`. If you already have an older
+  Bun, update it with `bun upgrade`.
+- **A desktop browser with WebGL** (Chrome, Firefox, Edge or a recent Safari). The sounds are
+  Ogg Opus files, which older Safari versions can't play.
+
+Only needed for the optional scripts:
+
+- **[ffmpeg](https://ffmpeg.org) with libopus** – `bun run sounds` (convert `.wav` masters) and
+  `bun run demo` (encode the demo video). macOS: `brew install ffmpeg`; Linux: your package manager.
+- **Google Chrome** – `bun run demo` records the game in headless Chrome.
 
 ## Run
 

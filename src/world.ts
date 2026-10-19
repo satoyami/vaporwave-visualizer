@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 // Colors are written straight into the shaders as sRGB values and the renderer
-// does no tone mapping, so what you see matches the reference image palette.
+// does no tone mapping, so what you see is exactly the palette written here.
 
 const SKY_RADIUS = 1000;
 
@@ -29,7 +29,7 @@ export function createSky() {
         float h = vDir.y;
         // Height on an imaginary upright backdrop in front of the camera.
         // Constant values of s are straight horizontal lines on screen, which
-        // is what the reference scanlines look like (constant h would curve).
+        // is how the sky's scanlines should look (constant h would curve).
         float s = h / max(dot(vDir.xz, uForward), 0.05);
 
         float t = clamp(s / 0.6, 0.0, 1.0); // 0 at the horizon, 1 at the top of the view
@@ -53,7 +53,7 @@ export function createSky() {
         float lineCore = 1.0 - clamp(d, 0.0, 1.0);        // about 1px wide
         float lineGlow = exp(-d * 1.3) * 0.15;            // faint neon bloom
 
-        // Faint half-step sub-grid, like the dim inner lines in the reference.
+        // Faint half-step sub-grid of dim inner lines.
         vec2 subPx = abs(fract(cell * 2.0 - 0.5) - 0.5) / (fw * 2.0);
         float sub = (1.0 - clamp(min(subPx.x, subPx.y) - 0.25, 0.0, 1.0)) * 0.12;
 
