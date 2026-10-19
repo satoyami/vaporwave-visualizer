@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun --hot index.ts",
     "start": "NODE_ENV=production bun index.ts",
-    "build": "bun build ./index.html --outdir dist --minify",
+    "build": "bun build ./index.html --outdir dist --minify && cp -R public/. dist/",
     "typecheck": "bun check"
   },
   "devDependencies": {

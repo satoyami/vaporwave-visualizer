@@ -1,0 +1,74 @@
+/* Sound lab dev panel, styled like the HUD (src/hud.css). */
+.sound-lab {
+  --sl-cyan: #7fe9ff;
+  --sl-text: #d6f9ff;
+  --sl-dim: rgba(160, 225, 255, 0.55);
+  --sl-pink: #ff5fd2;
+  --sl-line: rgba(110, 225, 255, 0.4);
+
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 10px 14px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--sl-line);
+  background: linear-gradient(160deg, rgba(30, 8, 64, 0.85), rgba(6, 18, 40, 0.85));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 18px rgba(90, 210, 255, 0.18);
+  color: var(--sl-text);
+  font: 12px/1.35 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+}
+.sound-lab[hidden] { display: none; }
+
+.sound-lab header { display: flex; align-items: center; gap: 8px; }
+.sound-lab section { display: grid; gap: 5px; }
+
+.sl-title { color: var(--sl-pink); letter-spacing: 0.2em; text-shadow: 0 0 6px rgba(255, 95, 210, 0.7); }
+.sl-status { flex: 1; font-size: 10px; color: var(--sl-dim); }
+.sl-label { font-size: 10px; letter-spacing: 0.18em; color: var(--sl-dim); }
+.sl-dim { color: var(--sl-dim); letter-spacing: 0.04em; }
+.sl-row { display: flex; gap: 6px; align-items: center; }
+
+.sound-lab button,
+.sound-lab select {
+  font: inherit;
+  color: var(--sl-text);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.sound-lab button:hover { border-color: var(--sl-cyan); }
+.sound-lab button.on { color: #12021f; background: var(--sl-cyan); }
+.sl-close { margin-left: auto; padding: 0 7px; }
+
+.sl-slider { display: grid; grid-template-columns: 64px 1fr 40px; align-items: center; gap: 6px; }
+.sl-slider input { width: 100%; accent-color: var(--sl-pink); }
+.sl-slider output { text-align: right; font-variant-numeric: tabular-nums; }
+.sl-check { display: flex; gap: 6px; align-items: center; }
+.sl-check input { accent-color: var(--sl-pink); }
+
+.sl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.sl-list li { display: grid; grid-template-columns: 1fr auto auto auto; gap: 4px; align-items: center; }
+.sl-list .sl-name {
+  text-align: left;
+  border-color: transparent;
+  background: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sl-list li.selected .sl-name { color: var(--sl-pink); border-color: var(--sl-pink); }
+.sl-list li.unregistered .sl-name { font-style: italic; }
+.sl-meta { font-size: 10px; color: var(--sl-dim); }

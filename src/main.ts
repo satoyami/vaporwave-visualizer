@@ -3,6 +3,12 @@ import { createGround, createSky, createStars } from "./world.ts";
 import { createMovement } from "./movement.ts";
 import { createHud } from "./hud.ts";
 import { createGates } from "./gates.ts";
+import { createScore } from "./score.ts";
+import { createPopups } from "./popups.ts";
+import { createAudioEngine } from "./audio/engine.ts";
+import { createWorldAudio } from "./audio/world-audio.ts";
+import { createDevPanel } from "./audio/dev-panel.ts";
+import { SOUND_IDS } from "./audio/sounds.ts";
 
 const EYE_HEIGHT = 2.2;
 
@@ -31,6 +37,28 @@ scene.add(new THREE.HemisphereLight(0xb45cff, 0x0b6f86, 1.6));
 
 const movement = createMovement(camera, EYE_HEIGHT);
 const hud = createHud();
+const score = createScore();
+const popups = createPopups(scene, camera);
+
+// Sound: the listener rides on the camera; gates get positional hums.
+const audio = createAudioEngine(camera);
+void audio.preload(SOUND_IDS);
+const worldAudio = createWorldAudio(audio, gates);
+
+// Sound lab dev panel: backtick toggles it, ?dev opens it on load.
+let devPanel: ReturnType<typeof createDevPanel> | null = null;
+const soundLab = () => (devPanel ??= createDevPanel({ engine: audio, worldAudio, scene, camera }));
+if (new URLSearchParams(location.search).has("dev")) soundLab().setOpen(true);
+
+const onAudioKey = (e: KeyboardEvent) => {
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === "Backquote") soundLab().toggle();
+  if (e.code === "KeyM") {
+    audio.setMuted(!audio.muted());
+    devPanel?.refresh();
+  }
+};
+window.addEventListener("keydown", onAudioKey);
 
 function resize() {
   const { clientWidth: width, clientHeight: height } = container;
@@ -67,12 +95,17 @@ renderer.setAnimationLoop((time) => {
   ground.material.uniforms.uCamPos!.value.copy(camera.position);
   gates.update(camera.position, elapsed);
 
+  const passed = gates.crossedGate();
+  if (passed && score.pass(passed)) popups.spawn("GATES +1");
+  popups.update(dt);
+
   renderer.render(scene, camera);
-  hud.update(movement.state(), gates.nearestGate());
+  hud.update(movement.state(), gates.nearestGate(), score.value());
+  worldAudio.update(movement.state(), elapsed, camera.position);
 });
 
 // Exposed for automated browser tests.
-(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene };
+(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene, audio, score };
 
 // Bun requires the literal `import.meta.hot.<api>` form (no `?.`).
 if (import.meta.hot) {
@@ -83,6 +116,11 @@ if (import.meta.hot) {
     movement.dispose();
     hud.dispose();
     timer.dispose();
+    window.removeEventListener("keydown", onAudioKey);
+    devPanel?.dispose();
+    worldAudio.dispose();
+    audio.dispose();
+    popups.dispose();
     gates.dispose();
     for (const obj of [sky.mesh, stars.points, ground.mesh]) {
       obj.geometry.dispose();

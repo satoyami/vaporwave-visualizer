@@ -21,6 +21,8 @@ const FIRST_GATE = new THREE.Vector3(0, 0, -160);
 // Gate size, in world units (the camera flies at about 2.2 units high).
 const WIDTH = 36;
 const HEIGHT = 42;
+/** Gate height, in world units. */
+export const GATE_HEIGHT = HEIGHT;
 const BAR = 2.4; // thickness of the metal frame
 const DEPTH = 1.8;
 const TUBE_RADIUS = 0.45;
@@ -68,7 +70,7 @@ function haloMaterial() {
 const BEAM_HEIGHT = 2600;
 const BEAM_WIDTH = 12; // full width up close, in units
 const BEAM_MIN_PIXEL_ANGLE = 0.004; // radians: keeps far beams several pixels wide
-const PULSE_PERIOD = 1.5; // seconds between pulses
+export const PULSE_PERIOD = 1.5; // seconds between pulses
 
 /**
  * A vertical light beam drawn on a quad that turns to face the camera around
@@ -167,6 +169,29 @@ function insetTriangle(width: number, height: number, inset: number) {
   return [a, b, c].map((p) => p.clone().sub(incenter).multiplyScalar(scale).add(incenter));
 }
 
+/** Corners of the gate's outer triangle, in gate-local space (base on the floor, facing ±Z). */
+const OUTER = insetTriangle(WIDTH, HEIGHT, 0);
+
+/** True when a gate-local point (x, y) lies inside the gate's triangle. */
+export function insideGate(x: number, y: number) {
+  const [a, b, c] = OUTER as [THREE.Vector2, THREE.Vector2, THREE.Vector2];
+  const side = (p: THREE.Vector2, q: THREE.Vector2) => (q.x - p.x) * (y - p.y) - (q.y - p.y) * (x - p.x);
+  const d1 = side(a, b);
+  const d2 = side(b, c);
+  const d3 = side(c, a);
+  const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+  const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+  return !(hasNeg && hasPos);
+}
+
+/** True when the viewer moved from one side of the gate plane to the other (z is gate-local). */
+export function crossedPlane(prevZ: number, z: number) {
+  return Number.isFinite(prevZ) && prevZ !== 0 && (prevZ > 0) !== (z > 0);
+}
+
+/** Only gates this close (in units) are checked for a fly-through. */
+const CROSS_CHECK_RANGE = 200;
+
 /** A triangular ring: outer triangle with an inset triangular hole, extruded. */
 function frameGeometry(width: number, height: number, bar: number, depth: number) {
   const outer = insetTriangle(width, height, 0);
@@ -240,6 +265,8 @@ function gatePlacement(i: number, j: number) {
  * Neon triangle gates on an endless lattice. Only the 3x3 cells around the
  * camera exist at any time; they're moved along as you travel.
  */
+export type Gates = ReturnType<typeof createGates>;
+
 export function createGates() {
   const group = new THREE.Group();
 
@@ -273,6 +300,8 @@ export function createGates() {
     glow: THREE.MeshBasicMaterial;
     beam: ReturnType<typeof beamMaterial>;
     cell: string;
+    /** Viewer's gate-local z last frame, NaN when unknown. */
+    prevZ: number;
   };
   const gates: Gate[] = [];
 
@@ -322,7 +351,7 @@ export function createGates() {
 
     object.add(frame, rails, tube, haloMesh, bracket, postL, postR, footL, footR, glowMesh, beamMesh);
     group.add(object);
-    gates.push({ object, halo, glow, beam, cell: "" });
+    gates.push({ object, halo, glow, beam, cell: "", prevZ: NaN });
   }
 
   // One light that follows the nearest gate, so its frame is lit by its own neon.
@@ -331,6 +360,8 @@ export function createGates() {
 
   const local = new THREE.Vector3();
   const nav: GateNav = { distance: 0, bearing: 0 };
+  /** Cell id of the gate flown through during the last update(), or null. */
+  let crossed: string | null = null;
 
   function update(camera: THREE.Vector3, time: number) {
     beamTime.value = time;
@@ -338,6 +369,7 @@ export function createGates() {
     const cj = Math.round(camera.z / GATE_SPACING);
     let nearest: Gate | undefined;
     let nearestDist = Infinity;
+    crossed = null;
 
     let k = 0;
     for (let di = -1; di <= 1; di++) {
@@ -351,6 +383,7 @@ export function createGates() {
           gate.object.position.copy(position);
           gate.object.rotation.y = yaw;
           gate.cell = cell;
+          gate.prevZ = NaN;
         }
 
         const dist = gate.object.position.distanceTo(camera);
@@ -359,6 +392,15 @@ export function createGates() {
         gate.halo.uniforms.uOpacity!.value = fade;
         gate.beam.uniforms.uOpacity!.value = fade;
         gate.glow.opacity = fade;
+
+        if (dist < CROSS_CHECK_RANGE) {
+          gate.object.updateMatrixWorld();
+          gate.object.worldToLocal(local.copy(camera));
+          if (crossedPlane(gate.prevZ, local.z) && insideGate(local.x, local.y)) crossed = gate.cell;
+          gate.prevZ = local.z;
+        } else {
+          gate.prevZ = NaN;
+        }
 
         if (dist < nearestDist) {
           nearestDist = dist;
@@ -396,5 +438,13 @@ export function createGates() {
   /** Nearest gate as of the last update(). */
   const nearestGate = (): GateNav => nav;
 
-  return { group, update, nearestGate, dispose };
+  /** True if the viewer flew through a gate during the last update(). */
+  const crossedThisFrame = () => crossed !== null;
+  /** Which gate was flown through during the last update(), as its lattice cell ("i,j"), or null. Unique per gate. */
+  const crossedGate = () => crossed;
+
+  /** The gate objects (they move to new lattice cells as you travel). */
+  const slots = (): readonly THREE.Group[] => gates.map((g) => g.object);
+
+  return { group, update, nearestGate, crossedThisFrame, crossedGate, slots, dispose };
 }

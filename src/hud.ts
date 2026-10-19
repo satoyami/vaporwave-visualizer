@@ -10,6 +10,11 @@ const CARDINALS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW",
 const TAPE_LABELS: Record<number, string> = { 0: "N", 45: "NE", 90: "E", 135: "SE", 180: "S", 225: "SW", 270: "W", 315: "NW" };
 
 const MARKUP = `
+  <section class="hud-score" data-hud="scoreBox">
+    <span class="hud-label">GATES</span>
+    <span class="hud-score-value"><span class="hud-star">★</span><span data-hud="score">0</span></span>
+  </section>
+  <div class="hud-divider"></div>
   <section>
     <div class="hud-label">HEADING</div>
     <div class="hud-tape">
@@ -66,7 +71,7 @@ const CROSSHAIR = `
 `;
 
 /**
- * Screen-space HUD: a top-right panel (heading tape, speedometer, gears,
+ * Screen-space HUD: a top-right panel (gate score, heading tape, speedometer, gears,
  * odometer, nearest gate) and a crosshair in the middle of the screen.
  */
 export function createHud(parent: HTMLElement = document.body) {
@@ -100,8 +105,11 @@ export function createHud(parent: HTMLElement = document.body) {
     navArrow: root.querySelector<SVGElement>("[data-hud=navArrow]")!,
     navDist: get("navDist"),
     navDir: get("navDir"),
+    score: get("score"),
+    scoreBox: get("scoreBox"),
   };
   let shownGear = 0;
+  let shownScore = 0;
 
   // Build the tape ticks once: small every 15°, labelled every 45°.
   const ticks = document.createDocumentFragment();
@@ -133,8 +141,20 @@ export function createHud(parent: HTMLElement = document.body) {
   const distanceFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const gateFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
-  function update(state: MovementState, gate: GateNav) {
+  function update(state: MovementState, gate: GateNav, score: number) {
     const { heading, speed, distance, boost, gear } = state;
+
+    if (score !== shownScore) {
+      const gained = score > shownScore;
+      shownScore = score;
+      setText(el.score, String(score));
+      if (gained) {
+        // Restart the flash animation.
+        el.scoreBox.classList.remove("bump");
+        void el.scoreBox.offsetWidth;
+        el.scoreBox.classList.add("bump");
+      }
+    }
 
     const tapeCenter = el.tape.clientWidth / 2;
     const offset = tapeCenter - (heading - TAPE_START) * PX_PER_DEGREE;

@@ -49,6 +49,30 @@
   background: linear-gradient(90deg, transparent, var(--hud-line), transparent);
 }
 
+/* Gate score */
+.hud-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.hud-score-value {
+  display: inline-block;
+  transform-origin: right center;
+  font-size: 26px;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 95, 210, 0.75);
+}
+.hud-star {
+  margin-right: 6px;
+  font-size: 18px;
+  color: var(--hud-pink);
+}
+.hud-score.bump .hud-score-value { animation: hud-score-bump 0.6s ease-out; }
+@keyframes hud-score-bump {
+  0% { color: var(--hud-pink); text-shadow: 0 0 18px var(--hud-pink), 0 0 30px var(--hud-pink); transform: scale(1.25); }
+  100% { color: #fff; transform: scale(1); }
+}
+
 /* Compass heading tape */
 .hud-tape {
   position: relative;
