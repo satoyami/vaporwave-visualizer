@@ -3,6 +3,10 @@
 Pass through as many neon gates as you can in 3 minutes. A three.js scene based on `image-refs/vaporwave-space.png`: a striped pink-to-violet
 sky with stars and a glowing horizon over an endless neon grid you can cruise around.
 
+[![Demo: a timed run through the neon gates](docs/demo.gif)](docs/demo.mp4)
+
+▶ [Watch the full demo with sound (MP4, 24 s)](docs/demo.mp4)
+
 ## Controls
 
 | Key | Action |
@@ -24,6 +28,7 @@ bun run start    # same server without hot reload (PORT=8080 to change the port)
 bun run build    # static build into ./dist, servable by any static host
 bun check        # type check
 bun run sounds   # convert sounds-src/*.wav → public/sounds/*.ogg
+bun run demo     # re-record docs/demo.mp4 and docs/demo.gif (needs Google Chrome + ffmpeg)
 ```
 
 ## Layout
@@ -45,6 +50,8 @@ Audio starts after the first key press or click (browser rule).
 
 - `sounds-src/{sfx,ambience}/` – master `.wav` files (not served)
 - `public/sounds/{sfx,ambience}/` – `.ogg` files (Opus, 160 kbps, 48 kHz) the game loads from `/sounds/...`
+- `scripts/record-demo.ts` – `bun run demo` plays a scripted round in headless Chrome frame by frame,
+  mixes the game's sounds offline (distance + stereo pan for 3D sounds) and encodes the README demo
 - `scripts/convert-sounds.ts` – `bun run sounds` converts new or changed masters with ffmpeg (`--force` redoes all)
 - `src/audio/sounds.ts` – manifest: every sound's file, mixer bus, volume, loop and 3D settings
 - `src/audio/engine.ts` – the engine. three.js `AudioListener` rides on the camera and

@@ -8,7 +8,8 @@
     "start": "NODE_ENV=production bun index.ts",
     "build": "bun build ./index.html --outdir dist --minify && cp -R public/. dist/",
     "typecheck": "bun check",
-    "sounds": "bun scripts/convert-sounds.ts"
+    "sounds": "bun scripts/convert-sounds.ts",
+    "demo": "bun scripts/record-demo.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

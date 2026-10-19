@@ -124,7 +124,7 @@ renderer.setAnimationLoop((time) => {
 });
 
 // Exposed for automated browser tests.
-(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene, audio, score, round };
+(window as unknown as { __vaporwave: unknown }).__vaporwave = { camera, renderer, scene, audio, score, round, gates };
 
 // Bun requires the literal `import.meta.hot.<api>` form (no `?.`).
 if (import.meta.hot) {
